@@ -7,16 +7,49 @@ class PIDController {
   private previousError: number = 0;
   private setPoint: number;
 
-  constructor(kp: number, ki: number, kd: number, setPoint: number) {
+  constructor(kp: number, ki: number, kd: number) {
     this.kp = kp;
     this.ki = ki;
     this.kd = kd;
+    this.setPoint = 0;
+  }
+
+  /**
+   * Initializes or re-initializes the PID controller with new gain values and set point.
+   * This method can be used to reset the PID parameters and internal states.
+   * @param kp Proportional gain.
+   * @param ki Integral gain.
+   * @param kd Derivative gain.
+   * @param setPoint The desired target value the controller will aim to achieve.
+   */
+  public initializePIDValues(
+    kp: number,
+    ki: number,
+    kd: number,
+    setPoint: number
+  ): void {
+    // Set the new gain values
+    this.kp = kp;
+    this.ki = ki;
+    this.kd = kd;
+
+    // Set the new set point
     this.setPoint = setPoint;
+
+    // Reset the integral and previous error to start fresh with the new settings
+    this.integral = 0;
+    this.previousError = 0;
   }
 
   public setSetPoint(setPoint: number) {
     this.setPoint = setPoint;
   }
+
+  /**
+   * Updates the PID controller with the latest measurement and returns the control output.
+   * @param currentValue The latest measurement or reading.
+   * @returns The control output that should be applied to the system.
+   */
 
   public update(currentValue: number): number {
     // Calculate the error as the difference between the set point and the current value.
@@ -46,3 +79,5 @@ class PIDController {
     return this.kp * error + this.ki * this.integral + this.kd * derivative;
   }
 }
+
+export default PIDController;

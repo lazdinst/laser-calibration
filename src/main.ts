@@ -1,47 +1,37 @@
 import StateMachine from "./core/StateMachine";
 import logger from "./logger";
+import PIDController from "./core/PID";
+
+const initParams = {
+  kp: 0.5,
+  ki: 0.5,
+  kd: 0.5,
+};
+
+const setPoint = 0;
 
 class MainLoop {
   context: string;
-  stateMachine: StateMachine | null;
+  pid: PIDController | null;
 
   constructor() {
     this.context = "main-loop";
-    this.stateMachine = null;
+    this.pid = null;
   }
 
-  async start() {
+  async init() {
     try {
-      const system = await this.initializeSystem();
-      if (!system) {
-        throw new Error("System initialization failed.");
+      const { kp, ki, kd } = initParams;
+      const pid = new PIDController(kp, ki, kd);
+      if (!pid) {
+        throw new Error("PID Initialization Failure.");
       }
-      const { stateMachine } = system;
-      this.stateMachine = stateMachine;
+
+      pid.setSetPoint(setPoint);
+
+      this.pid = pid;
     } catch (error) {
       this.exceptionHandler(error);
-    }
-  }
-
-  async initializeSystem(): Promise<{
-    stateMachine: StateMachine;
-  } | null> {
-    logger.info({
-      context: this.context,
-      message: "Main Process Initializing ...",
-    });
-    try {
-      const stateMachine = new StateMachine();
-
-      logger.info({
-        context: this.context,
-        message: "Main Process Initialized",
-      });
-
-      return { stateMachine };
-    } catch (error) {
-      this.exceptionHandler(error);
-      return null;
     }
   }
 
@@ -51,11 +41,12 @@ class MainLoop {
       message: "This is an error message.",
       error: error,
     });
+    console.log(error);
   }
 }
 
 const mainLoop = new MainLoop();
-mainLoop.start();
+mainLoop.init();
 
 process.on("uncaughtException", (error) => {
   logger.error({
