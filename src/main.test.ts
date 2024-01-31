@@ -1,4 +1,4 @@
-describe("test add function", () => {
+describe("Dummy Test", () => {
   it("should work", () => {
     expect(1 + 1).toBe(2);
   });

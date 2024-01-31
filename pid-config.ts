@@ -3,4 +3,5 @@ export default {
   ki: 0.5,
   kd: 0.5,
   setPoint: 1,
+  steps: 100,
 };

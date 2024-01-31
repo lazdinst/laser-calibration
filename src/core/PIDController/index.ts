@@ -4,6 +4,7 @@ class PIDController {
   private kd: number; // Derivative gain
 
   private integral: number = 0;
+  private derivative: number = 0;
   private previousError: number = 0;
   private setPoint: number;
 
@@ -28,16 +29,16 @@ class PIDController {
     kd: number,
     setPoint: number
   ): void {
-    // Set the new gain values
+    // Init gain values
     this.kp = kp;
     this.ki = ki;
     this.kd = kd;
 
-    // Set the new set point
+    // Init set point
     this.setPoint = setPoint;
 
-    // Reset the integral and previous error to start fresh with the new settings
     this.integral = 0;
+    this.derivative = 0;
     this.previousError = 0;
   }
 
@@ -70,7 +71,7 @@ class PIDController {
     // Calculate the derivative, which is the difference between the current error and the previous error.
     // The derivative term predicts the future trend of the error, based on its current rate of change.
     // It helps in bringing the error to zero more rapidly and in minimizing overshoot.
-    let derivative = error - this.previousError;
+    this.derivative = error - this.previousError;
 
     // Update the previous error with the current error for the next iteration.
     // This is necessary for the next derivative calculation.
@@ -82,8 +83,56 @@ class PIDController {
     // The derivative term (kd * derivative) predicts future errors.
     // This control output will be used to adjust the system in order to minimize the error.
     const output =
-      this.kp * error + this.ki * this.integral + this.kd * derivative;
-    return { output, error, integral: this.integral, derivative };
+      this.kp * error + this.ki * this.integral + this.kd * this.derivative;
+    return {
+      output,
+      error,
+      integral: this.integral,
+      derivative: this.derivative,
+    };
+  }
+
+  /**
+   * Returns the current proportional gain.
+   */
+  public getKp(): number {
+    return this.kp;
+  }
+
+  /**
+   * Returns the current integral gain.
+   */
+  public getKi(): number {
+    return this.ki;
+  }
+
+  /**
+   * Returns the current derivative gain.
+   */
+  public getKd(): number {
+    return this.kd;
+  }
+
+  /**
+   * Returns the current value of the integral component.
+   */
+  public getIntegral(): number {
+    return this.integral;
+  }
+
+  /**
+   * Returns the current value of the derivative component.
+   * This requires storing the derivative value as a class property.
+   */
+  public getDerivative(): number {
+    return this.derivative;
+  }
+
+  /**
+   * Returns the current set point.
+   */
+  public getSetPoint(): number {
+    return this.setPoint;
   }
 }
 

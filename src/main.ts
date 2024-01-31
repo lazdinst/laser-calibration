@@ -43,7 +43,7 @@ class MainLoop {
     const simulator = new Simulator(this.pid, initialOutput, noiseFactor);
 
     try {
-      simulator.runSimulation(100);
+      simulator.runSimulation(config.steps);
     } catch (error) {
       this.exceptionHandler(error);
     }
