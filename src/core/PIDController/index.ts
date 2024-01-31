@@ -47,20 +47,20 @@ class PIDController {
 
   /**
    * Updates the PID controller with the latest measurement and returns the control output.
-   * @param currentValue The latest measurement or reading.
+   * @param currentResponse The latest measurement or reading. Ion Responses.
    * @returns The control output that should be applied to the system.
    */
 
-  public update(currentValue: number): {
+  public update(currentResponse: number): {
     output: number;
     integral: number;
     derivative: number;
     error: number;
   } {
-    // Calculate the error as the difference between the set point and the current value.
-    // The set point is the desired value we are trying to achieve, and the current value
+    // Calculate the error as the difference between the set point and the current response.
+    // The set point is the desired value we are trying to achieve, and the current response
     // is the latest measurement or reading. The error represents how far off we are from the desired target.
-    let error = this.setPoint - currentValue;
+    let error = this.setPoint - currentResponse;
 
     // Update the integral value by adding the current error.
     // The integral term is a sum of all past errors. It represents the accumulated offset
