@@ -7,11 +7,11 @@ class PIDController {
   private previousError: number = 0;
   private setPoint: number;
 
-  constructor(kp: number, ki: number, kd: number) {
+  constructor(kp: number, ki: number, kd: number, setPoint: number) {
     this.kp = kp;
     this.ki = ki;
     this.kd = kd;
-    this.setPoint = 0;
+    this.setPoint = setPoint;
   }
 
   /**
@@ -51,7 +51,12 @@ class PIDController {
    * @returns The control output that should be applied to the system.
    */
 
-  public update(currentValue: number): number {
+  public update(currentValue: number): {
+    output: number;
+    integral: number;
+    derivative: number;
+    error: number;
+  } {
     // Calculate the error as the difference between the set point and the current value.
     // The set point is the desired value we are trying to achieve, and the current value
     // is the latest measurement or reading. The error represents how far off we are from the desired target.
@@ -76,7 +81,9 @@ class PIDController {
     // The integral term (ki * this.integral) counters accumulated past errors.
     // The derivative term (kd * derivative) predicts future errors.
     // This control output will be used to adjust the system in order to minimize the error.
-    return this.kp * error + this.ki * this.integral + this.kd * derivative;
+    const output =
+      this.kp * error + this.ki * this.integral + this.kd * derivative;
+    return { output, error, integral: this.integral, derivative };
   }
 }
 

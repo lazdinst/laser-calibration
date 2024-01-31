@@ -1,14 +1,7 @@
-import StateMachine from "./core/StateMachine";
 import logger from "./logger";
-import PIDController from "./core/PID";
-
-const initParams = {
-  kp: 0.5,
-  ki: 0.5,
-  kd: 0.5,
-};
-
-const setPoint = 0;
+import PIDController from "./core/PIDController";
+import Simulator from "./core/Simulator";
+import config from "../pid-config";
 
 class MainLoop {
   context: string;
@@ -19,17 +12,38 @@ class MainLoop {
     this.pid = null;
   }
 
-  async init() {
-    try {
-      const { kp, ki, kd } = initParams;
-      const pid = new PIDController(kp, ki, kd);
-      if (!pid) {
-        throw new Error("PID Initialization Failure.");
+  public init(config: {
+    kp: number;
+    ki: number;
+    kd: number;
+    setPoint: number;
+  }): Promise<void> {
+    return new Promise((resolve, reject) => {
+      try {
+        const { kp, ki, kd, setPoint } = config;
+        const pid = new PIDController(kp, ki, kd, setPoint);
+        if (!pid) {
+          throw new Error("PID Initialization Failure.");
+        }
+
+        this.pid = pid;
+        resolve();
+      } catch (error) {
+        reject(error);
       }
+    });
+  }
 
-      pid.setSetPoint(setPoint);
+  public run(): void {
+    if (!this.pid) {
+      throw new Error("PID Controller not initialized.");
+    }
+    const noiseFactor = 0.1;
+    const initialOutput = 0;
+    const simulator = new Simulator(this.pid, initialOutput, noiseFactor);
 
-      this.pid = pid;
+    try {
+      simulator.runSimulation(100);
     } catch (error) {
       this.exceptionHandler(error);
     }
@@ -45,8 +59,18 @@ class MainLoop {
   }
 }
 
-const mainLoop = new MainLoop();
-mainLoop.init();
+try {
+  const mainLoop = new MainLoop();
+  mainLoop.init(config);
+  mainLoop.run();
+} catch (error) {
+  logger.error({
+    context: "main-exec",
+    message: `Error: ${error}`,
+    error: error,
+  });
+  throw error;
+}
 
 process.on("uncaughtException", (error) => {
   logger.error({
