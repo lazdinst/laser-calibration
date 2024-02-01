@@ -1,5 +1,6 @@
 import PIDController from "../PIDController";
 import fs from "fs";
+import config from "../../../pid-config";
 
 class Simulator {
   private pidController: PIDController;
@@ -29,10 +30,24 @@ class Simulator {
    */
   public runSimulation(steps: number): void {
     for (let step = 0; step < steps; step++) {
-      const noise = this.generateNoise();
+      if (config.SET_POINT_FLAG) {
+        if (Math.random() > 0.995) {
+          console.log("Randomly setting new set point");
+          this.generateSetPoint();
+        }
+      }
+
+      if (config.NOISE_FLAG) {
+        if (Math.random() > 0.995) {
+          console.log("Randomly setting new noise Factor");
+          this.generateSetPoint();
+        }
+      }
+      const noise = this.generateNoise(this.noiseFactor);
       const { output, error, integral, derivative } = this.pidController.update(
         this.systemOutput + noise
       );
+
       this.systemOutput += output;
       this.outputs.push({
         timestamp: new Date(),
@@ -45,8 +60,12 @@ class Simulator {
     this.writeToFile();
   }
 
-  private generateNoise(): number {
-    return (Math.random() - 0.5) * this.noiseFactor;
+  private generateNoise(noiseFactor: number): number {
+    return (Math.random() - 0.5) * noiseFactor;
+  }
+
+  private generateSetPoint(): number {
+    return Math.random() * 100;
   }
 
   /**

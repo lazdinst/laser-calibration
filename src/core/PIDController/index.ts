@@ -29,12 +29,9 @@ class PIDController {
     kd: number,
     setPoint: number
   ): void {
-    // Init gain values
     this.kp = kp;
     this.ki = ki;
     this.kd = kd;
-
-    // Init set point
     this.setPoint = setPoint;
 
     this.integral = 0;
