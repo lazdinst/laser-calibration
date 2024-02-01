@@ -8,13 +8,9 @@ This solution addresses the laser calibration challenge using control theory pri
 
 `node v18.17.1`
 
-## Installation
-
-npm install
-
 ## Run
 
-npm run start
+`./runme.sh`
 
 ## Simulation Results
 
