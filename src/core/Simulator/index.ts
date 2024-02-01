@@ -1,21 +1,26 @@
 import PIDController from "../PIDController";
 import { promises as fsPromises } from "fs";
 import config from "../../pid-config";
-import * as asciichart from "asciichart";
+import PlotGenerator from "./PlotGenerator";
+import { OutputType } from "./types";
 
-import { OutputType, PlotType } from "./types";
-
-const PLOT_CONFIG = {
-  height: config?.PLOT_HEIGHT,
-};
-
+/**
+ * Simulator class responsible for running PID control simulations.
+ * It simulates the effect of a PID controller on a system output,
+ * considering noise and other dynamic factors.
+ */
 class Simulator {
   private pidController: PIDController;
   private systemOutput: number;
   private noiseFactor: number;
-  private outputs: OutputType[] = [];
-  private plots: PlotType[] = [];
+  public outputs: OutputType[] = [];
 
+  /**
+   * Constructs the simulator instance.
+   * @param pid The PIDController instance to be used in the simulation.
+   * @param initialOutput The initial output value of the system.
+   * @param noiseFactor The factor by which random noise is scaled.
+   */
   constructor(
     pid: PIDController,
     initialOutput: number = 0,
@@ -27,23 +32,24 @@ class Simulator {
   }
 
   /**
-   * Runs the simulation for a specified number of steps.
-   * @param steps Number of steps to run the simulation.
+   * Runs the PID simulation for a given number of steps.
+   * It updates the system output based on the PID controller's output and records the system's behavior.
+   * @param steps The number of simulation steps to run.
    */
-  public async runSimulation(steps: number): Promise<void> {
+  public async runSimulation(steps: number, plotFlag?: Boolean): Promise<void> {
     for (let step = 0; step < steps; step++) {
-      // Random noise injection
+      // Apply random noise magnifier based on configuration
       const randomNoise = this.randomNoiseMagnifier();
 
-      // Generate Noise
+      // Calculate the noise-injected system output
       const noise = this.generateNoise(this.noiseFactor) * randomNoise;
       const noiseInjectedOuput = this.systemOutput + noise;
 
-      // Update PID controller
+      // Update the PID controller and retrieve its output
       const { output, error, integral, derivative } =
         this.pidController.update(noiseInjectedOuput);
 
-      // Update system output
+      // Accumulate the PID output to the system's output
       this.systemOutput += output;
       this.outputs.push({
         timestamp: new Date(),
@@ -54,35 +60,61 @@ class Simulator {
       } as OutputType);
     }
 
-    // Write to data file
+    // Persist simulation results to a file
     await this.writeToFile();
 
-    // Generate Terminal plots
-    this.generatePlots();
+    // Generate and log plots for the simulation data
+    if (plotFlag) {
+      let plotManager = new PlotGenerator(this.outputs);
+      plotManager.generatePlots();
+      plotManager.logPlots();
+    }
   }
 
+  /**
+   * Determines a random magnifier for noise, based on configuration settings.
+   * @returns A random noise magnifier value.
+   */
   private randomNoiseMagnifier(): number {
-    if (config?.ENABLE_NOISE_MAGNIFIER && config?.noiseMagProbability) {
-      if (Math.random() > config?.noiseMagProbability) {
-        const randomMagnifier = Math.floor(Math.random() * 10);
+    // Validate configuration values
+    if (
+      typeof config?.ENABLE_NOISE_MAGNIFIER !== "boolean" ||
+      typeof config?.noiseMagProbability !== "number" ||
+      config.noiseMagProbability < 0 ||
+      config.noiseMagProbability > 1
+    ) {
+      console.warn("Invalid configuration for noise magnifier.");
+      return 1;
+    }
+
+    if (config.ENABLE_NOISE_MAGNIFIER) {
+      if (Math.random() < config.noiseMagProbability) {
+        // Adjust to get a range from 1 to 10, if that's the desired range
+        const randomMagnifier = Math.floor(Math.random() * 10) + 1;
         return randomMagnifier;
       }
     }
     return 1;
   }
 
+  /**
+   * Generates a random noise value based on a given noise factor.
+   * The method returns a value in the range of (-noiseFactor/2, noiseFactor/2).
+   * @param noiseFactor The factor by which to scale the noise. Expected to be a non-negative number.
+   * @returns A noise value to be added to the system output. Zero if the noiseFactor is non-positive.
+   */
   private generateNoise(noiseFactor: number): number {
+    if (typeof noiseFactor !== "number" || noiseFactor <= 0) {
+      console.warn("Noise factor should be a positive number.");
+      return 0;
+    }
+
     return (Math.random() - 0.5) * noiseFactor;
   }
 
   /**
-   * Sets a new set point for the PID controller.
-   * @param setPoint New set point.
+   * Writes the collected simulation data to a CSV file.
    */
-  public setSetPoint(setPoint: number): void {
-    this.pidController.setSetPoint(setPoint);
-  }
-
   private async writeToFile(): Promise<void> {
     const fileName = "simulation_results.csv";
     const headers = "Timestamp,Output,Error,Integral,Derivative\n";
@@ -103,80 +135,6 @@ class Simulator {
     } catch (err) {
       console.error("Error writing to file:", err);
     }
-  }
-
-  private generatePlots(): void {
-    const outputs = this.outputs;
-    if (this.outputs.length === 0) {
-      throw new Error("No outputs to plot");
-    }
-    try {
-      this.generateOutputPlot(outputs);
-      this.generateErrorPlot(outputs);
-      this.generateIntegralPlot(outputs);
-      this.generateDerivativePlot(outputs);
-      this.logGeneratedPlots();
-    } catch (e) {
-      console.error(e);
-    }
-  }
-
-  private logGeneratedPlots(): void {
-    if (this.plots.length === 0) {
-      throw new Error("No plots to log");
-    }
-    this.plots.forEach((plot) => {
-      console.log(`\n${plot.name}:\n`);
-      console.log(plot.plot);
-    });
-  }
-
-  private generateOutputPlot(outputs: OutputType[]): void {
-    if (outputs.length === 0) {
-      throw new Error("No outputs to plot");
-    }
-    const outputValues = outputs.map((output) => output.output);
-    const plot = asciichart.plot(outputValues, PLOT_CONFIG);
-    this.plots.push({
-      name: "Output",
-      plot,
-    });
-  }
-
-  private generateErrorPlot(outputs: OutputType[]): void {
-    if (outputs.length === 0) {
-      throw new Error("No Errors to plot");
-    }
-    const errorValues = outputs.map((output) => output.error);
-    const plot = asciichart.plot(errorValues, PLOT_CONFIG);
-    this.plots.push({
-      name: "Error",
-      plot,
-    });
-  }
-
-  private generateIntegralPlot(outputs: OutputType[]): void {
-    if (outputs.length === 0) {
-      throw new Error("No Integrals to plot");
-    }
-    const integralValues = outputs.map((output) => output.integral);
-    const plot = asciichart.plot(integralValues, PLOT_CONFIG);
-    this.plots.push({
-      name: "Integral",
-      plot,
-    });
-  }
-
-  private generateDerivativePlot(outputs: OutputType[]): void {
-    if (outputs.length === 0) {
-      throw new Error("No Derivatives to plot");
-    }
-    const derivativeValues = outputs.map((output) => output.derivative);
-    const plot = asciichart.plot(derivativeValues, PLOT_CONFIG);
-    this.plots.push({
-      name: "Derivative",
-      plot,
-    });
   }
 }
 
