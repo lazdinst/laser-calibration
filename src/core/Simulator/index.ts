@@ -67,7 +67,6 @@ class Simulator {
     if (plotFlag) {
       let plotManager = new PlotGenerator(this.outputs);
       plotManager.generatePlots();
-      plotManager.logPlots();
     }
   }
 
