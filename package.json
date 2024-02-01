@@ -9,7 +9,7 @@
   "scripts": {
     "start": "nodemon --watch 'src/**/*' -e ts,tsx --exec ts-node src/main.ts",
     "test": "jest",
-    "test:start": "jest && npm run start"
+    "me": "jest && npm run start"
   },
   "keywords": [],
   "author": "",

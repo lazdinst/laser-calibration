@@ -18,5 +18,4 @@ it("should run simulation and populate outputs", async () => {
   await simulator.runSimulation(steps);
 
   expect(simulator.outputs.length).toBe(steps);
-  // Additional checks can be performed on the outputs
 });
