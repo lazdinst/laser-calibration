@@ -1,7 +1,6 @@
-import logger from "./logger";
 import PIDController from "./core/PIDController";
 import Simulator from "./core/Simulator";
-import config from "../pid-config";
+import config from "./pid-config";
 
 class MainLoop {
   context: string;
@@ -12,12 +11,19 @@ class MainLoop {
     this.pid = null;
   }
 
-  public init(config: {
-    kp: number;
-    ki: number;
-    kd: number;
-    setPoint: number;
-  }): Promise<void> {
+  public init(
+    config: {
+      kp: number;
+      ki: number;
+      kd: number;
+      setPoint: number;
+    } = {
+      kp: 0.05,
+      ki: 0.5,
+      kd: 0.1,
+      setPoint: 1,
+    }
+  ): Promise<void> {
     return new Promise((resolve, reject) => {
       try {
         const { kp, ki, kd, setPoint } = config;
@@ -38,10 +44,9 @@ class MainLoop {
     if (!this.pid) {
       throw new Error("PID Controller not initialized.");
     }
-    const noiseFactor = 0.1;
-    const initialOutput = 0;
+    const noiseFactor = config?.noiseFactor || 0;
+    const initialOutput = config?.initialOutput || 0;
     const simulator = new Simulator(this.pid, initialOutput, noiseFactor);
-    console.log(this.pid.update(45));
     try {
       simulator.runSimulation(config.steps);
     } catch (error) {
@@ -50,34 +55,24 @@ class MainLoop {
   }
 
   exceptionHandler(error: any) {
-    logger.error({
-      context: this.context,
-      message: "This is an error message.",
-      error: error,
-    });
-    console.log(error);
+    throw error;
   }
 }
 
-try {
-  const mainLoop = new MainLoop();
-  mainLoop.init(config);
-  mainLoop.run();
-} catch (error) {
-  logger.error({
-    context: "main-exec",
-    message: `Error: ${error}`,
-    error: error,
-  });
-  throw error;
-}
+const delayDuration = 1000;
+
+setTimeout(() => {
+  try {
+    const mainLoop = new MainLoop();
+    mainLoop.init(config);
+    mainLoop.run();
+  } catch (error) {
+    throw error;
+  }
+}, delayDuration);
 
 process.on("uncaughtException", (error) => {
-  logger.error({
-    context: "main-exec",
-    message: `Uncaught Exception ${error}`,
-    error: error,
-  });
+  console.error("Uncaught Exception: ", error);
 });
 
 process.on("SIGINT", () => {
