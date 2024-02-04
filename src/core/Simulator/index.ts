@@ -1,13 +1,12 @@
 import PIDController from "../PIDController";
 import { promises as fsPromises } from "fs";
 import config from "../../pid-config";
-import PlotGenerator from "./PlotGenerator";
 import { OutputType } from "./types";
 
 /**
- * Simulator class responsible for running PID control simulations.
- * It simulates the effect of a PID controller on a system output,
- * considering noise and other dynamic factors.
+ * Simulator Class is designed to execute simulations of PID (Proportional-Integral-Derivative) control.
+ * It models the influence of a PID controller on the output of a system,
+ * taking into account various dynamic elements and noise factors.
  */
 class Simulator {
   private pidController: PIDController;
@@ -35,65 +34,37 @@ class Simulator {
    * Runs the PID simulation for a given number of steps.
    * It updates the system output based on the PID controller's output and records the system's behavior.
    * @param steps The number of simulation steps to run.
+   * @returns A promise that resolves to an array of OutputType objects.
    */
-  public async runSimulation(steps: number, plotFlag?: Boolean): Promise<void> {
-    for (let step = 0; step < steps; step++) {
-      // Apply random noise magnifier based on configuration
-      const randomNoise = this.randomNoiseMagnifier();
+  public async runSimulation(steps: number): Promise<OutputType[]> {
+    try {
+      for (let step = 0; step < steps; step++) {
+        // Calculate the noise-injected system output
+        const noise = this.generateRandomNoise(this.noiseFactor);
+        const noiseInjectedOuput = this.systemOutput + noise;
 
-      // Calculate the noise-injected system output
-      const noise = this.generateNoise(this.noiseFactor) * randomNoise;
-      const noiseInjectedOuput = this.systemOutput + noise;
+        // Update the PID controller and retrieve its output
+        const { output, error, integral, derivative } =
+          this.pidController.update(noiseInjectedOuput);
 
-      // Update the PID controller and retrieve its output
-      const { output, error, integral, derivative } =
-        this.pidController.update(noiseInjectedOuput);
-
-      // Accumulate the PID output to the system's output
-      this.systemOutput += output;
-      this.outputs.push({
-        timestamp: new Date(),
-        output: this.systemOutput,
-        error: error,
-        integral: integral,
-        derivative: derivative,
-      } as OutputType);
-    }
-
-    // Persist simulation results to a file
-    await this.writeToFile();
-
-    // Generate and log plots for the simulation data
-    if (plotFlag) {
-      let plotManager = new PlotGenerator(this.outputs);
-      plotManager.generatePlots();
-    }
-  }
-
-  /**
-   * Determines a random magnifier for noise, based on configuration settings.
-   * @returns A random noise magnifier value.
-   */
-  private randomNoiseMagnifier(): number {
-    // Validate configuration values
-    if (
-      typeof config?.ENABLE_NOISE_MAGNIFIER !== "boolean" ||
-      typeof config?.noiseMagProbability !== "number" ||
-      config.noiseMagProbability < 0 ||
-      config.noiseMagProbability > 1
-    ) {
-      console.warn("Invalid configuration for noise magnifier.");
-      return 1;
-    }
-
-    if (config.ENABLE_NOISE_MAGNIFIER) {
-      if (Math.random() < config.noiseMagProbability) {
-        // Adjust to get a range from 1 to 10, if that's the desired range
-        const randomMagnifier = Math.floor(Math.random() * 10) + 1;
-        return randomMagnifier;
+        // Accumulate the PID output to the system's output
+        this.systemOutput += output;
+        this.outputs.push({
+          timestamp: new Date(),
+          output: this.systemOutput,
+          error: error,
+          integral: integral,
+          derivative: derivative,
+        } as OutputType);
       }
+
+      // Write simulation results to a file
+      await this.writeToFile();
+    } catch (error) {
+      throw error;
     }
-    return 1;
+
+    return this.outputs;
   }
 
   /**
@@ -102,12 +73,11 @@ class Simulator {
    * @param noiseFactor The factor by which to scale the noise. Expected to be a non-negative number.
    * @returns A noise value to be added to the system output. Zero if the noiseFactor is non-positive.
    */
-  private generateNoise(noiseFactor: number): number {
+  private generateRandomNoise(noiseFactor: number): number {
     if (typeof noiseFactor !== "number" || noiseFactor <= 0) {
       console.warn("Noise factor should be a positive number.");
       return 0;
     }
-
     return (Math.random() - 0.5) * noiseFactor;
   }
 

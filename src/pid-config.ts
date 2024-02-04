@@ -4,9 +4,8 @@ export default {
   kd: 0.1, // Future Error
   setPoint: 1, // Set point
   initialOutput: 0, // Initial output
-  steps: 100, // Number of steps; Terminal Plots unreadable past 175
+  steps: 100, // Number of steps; For Terminal Plots recommended <175; scales with windowsize
   noiseFactor: 0.1, // Noise factor
-  ENABLE_NOISE_MAGNIFIER: true, // Enable random noise magnifier
-  noiseMagProbability: 0.995, // Probability of noise magnifier
-  PLOT_HEIGHT: 16, // Plot Size
+  ENABLE_PLOT: true, // Enable plot
+  plotHeight: 16, // Plot Size
 };

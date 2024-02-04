@@ -1,3 +1,10 @@
+/**
+ * PID Controller Class:
+ * A proportional-integral-derivative (PID) controller for feedback control systems.
+ * It calculates control outputs based on the error signal (the difference between a desired set point
+ * and a measured process variable) and the PID gains (proportional, integral, and derivative).
+ */
+
 class PIDController {
   private kp: number; // Proportional gain
   private ki: number; // Integral gain
