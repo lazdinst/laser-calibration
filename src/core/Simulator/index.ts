@@ -75,7 +75,6 @@ class Simulator {
    */
   private generateRandomNoise(noiseFactor: number): number {
     if (typeof noiseFactor !== "number" || noiseFactor <= 0) {
-      console.warn("Noise factor should be a positive number.");
       return 0;
     }
     return (Math.random() - 0.5) * noiseFactor;
@@ -100,7 +99,6 @@ class Simulator {
 
     try {
       await fsPromises.writeFile(fileName, fileContent);
-      console.log(`Simulation results written to ${fileName}`);
     } catch (err) {
       console.error("Error writing to file:", err);
     }
