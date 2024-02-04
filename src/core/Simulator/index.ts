@@ -1,6 +1,5 @@
 import PIDController from "../PIDController";
 import { promises as fsPromises } from "fs";
-import config from "../../pid-config";
 import { OutputType } from "./types";
 
 /**
