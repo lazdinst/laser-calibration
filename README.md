@@ -9,7 +9,6 @@ This solution is designed to address the need for continuous calibration in dive
 ### Repository Structure
 
 - `src/`: Contains the source code for the laser calibration solution.
-- `tests/`: Includes unit tests to ensure the correctness and robustness of the code.
 - `runme.sh`: A script to execute the algorithm with example data and produce outputs.
 
 ### Core Components
