@@ -1,6 +1,6 @@
 # PID Application & Simulator
 
-This versatile solution is designed to address the need for continuous calibration in diverse scenarios. It is a response to a coding challenge posed by a company seeking precise hardware control amidst a complex environment with numerous variables affecting system output.
+This solution is designed to address the need for continuous calibration in diverse scenarios. It is a response to a coding challenge posed by a company seeking precise hardware control amidst a complex environment with numerous variables affecting system output.
 
 ## Requirements
 
@@ -16,7 +16,7 @@ This versatile solution is designed to address the need for continuous calibrati
 
 #### Simulation Manager
 
-The Simulation Manager orchestrates the entire PID control loop process. It initializes the PID Controller with configuration settings, runs the simulation, and optionally generates plots based on simulation results. This component serves as the main control hub for the calibration process.
+The Simulation Manager orchestrates the entire PID control loop process. It initializes the PID Controller with configuration settings, runs the simulation, and generates plots based on simulation results. This component serves as the main control hub for the calibration process.
 
 #### PID Controller
 
