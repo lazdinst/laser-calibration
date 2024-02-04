@@ -4,7 +4,7 @@ This solution is designed to address the need for continuous calibration in dive
 
 ## Requirements
 
-- `node v18.17.1`
+- `node v20.11.0`
 
 ### Repository Structure
 
