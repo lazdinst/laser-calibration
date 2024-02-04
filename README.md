@@ -44,6 +44,24 @@ To quickly set up and run the application, you can use the `runme.sh` script. Th
 - `npm run start`: Starts the application instance loop, monitoring configuration changes and executing the calibration process.
 - `npm run test`: Executes the test suite for the application, verifying its functionality and reliability.
 
+## Simulation Configurations
+
+Default Configs:
+
+```
+export default {
+  kp: 0.1, // Offest from setPoint
+  ki: 0.01, // Past Error
+  kd: 0.1, // Future Error
+  setPoint: 1, // Set point
+  initialOutput: 0, // Initial output
+  steps: 100, // Number of steps; For Terminal Plots recommended <175; scales with windowsize
+  noiseFactor: 0.1, // Noise factor
+  ENABLE_PLOT: true, // Enable plot
+  plotHeight: 16, // Plot Size
+};
+```
+
 ## Simulation Results
 
 The simulation results are stored in the `simulation_results.csv` file. This file contains valuable data regarding the calibration process and can be analyzed to assess the system's performance.
